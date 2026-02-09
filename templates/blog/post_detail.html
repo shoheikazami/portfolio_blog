@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load social_share %}
+
+{% block content %}
+<table class="table">
+    <tr>
+      <th>タイトル</th>
+      <td>{{ post.title }}</td>
+    </tr>
+    <tr>
+      <th>本文</th>
+      <!-- linebreaksbk を入れると改行タグでちゃんと改行して表示されるようになる -->
+      <td>{{ post.text | linebreaksbr}}</td>
+    </tr>
+    <tr>
+      <th>日付</th>
+      <td>{{ post.date }}</td>
+    </tr>
+</table>
+
+<!-- いいねボタン -->
+<div style="margin-top: 20px;">
+    <button id="like-btn" class="btn btn-outline-danger" data-post-id="{{ post.id }}">
+        ♥ <span id="like-count">{{ post.likes.count }}</span>
+    </button>
+</div>
+
+{% if user.is_superuser %}
+<div style="margin-top: 20px;">
+    <a href="{% url 'blog:post_update' post.pk %}" class="btn btn-primary">編集</a>
+    <a href="{% url 'blog:post_delete' post.pk %}" class="btn btn-danger">削除</a>
+</div>
+{% endif %}
+
+<script>
+document.getElementById('like-btn').addEventListener('click', function() {
+    fetch("{% url 'blog:toggle_like' post.id %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'}
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('like-count').textContent = data.likes;
+    });
+});
+</script>
+{% endblock %}
