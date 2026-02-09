@@ -8,3 +8,4 @@ psycopg2-binary
 whitenoise
 djangorestframework
 django_social_share
+pillow
