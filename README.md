@@ -4,7 +4,7 @@ Djangoを用いて開発した個人用ブログアプリです。私の好き�
 CRUD機能や検索機能など、実用的な機能を実装しています。
 
 # 主な機能
--　ユーザー認証機能（スーパーユーザーしか記事を投稿・編集。削除できない）
+-　ユーザー認証機能（スーパーユーザーしか記事を投稿・編集・削除できない）
 -　記事の投稿/編集/削除
 -　いいね機能
 -　記事検索機能
@@ -18,17 +18,17 @@ CRUD機能や検索機能など、実用的な機能を実装しています。
 - Git / GitHub
 
 # 工夫した点
--REST API化によるフロントエンドとの分離(実装に苦労したが、Github Copilotの協力で可能となった)
--セキュリティ対策(csrf)
+- REST API化によるフロントエンドとの分離(実装に苦労したが、Github Copilotの協力で可能となった)
+- セキュリティ対策(csrf)
 - 基本的な機能に対するテストコードの実装
 
 # 環境構築方法
-'''bash
-git clone https://github.com/shoheikazami/portfolio_blog
-cd portfolio_blog
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver
+- '''bash
+- git clone https://github.com/shoheikazami/portfolio_blog
+- cd portfolio_blog
+- pip install -r requirements.txt
+- python manage.py migrate
+- python manage.py runserver
 
 # 参考記事
 https://zenn.dev/tmasuyama1114/articles/django-tutorial-blogapp-1
