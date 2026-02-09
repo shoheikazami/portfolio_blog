@@ -17,9 +17,22 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from apiapp.urls import router as api_router
+from django.contrib.auth.models import User
+from django.http import HttpResponse
 
 from django.conf import settings 
 from django.conf.urls.static import static
+
+def create_superuser(request):
+    # すでに存在する場合は作らない
+    if not User.objects.filter(username="godzilla1954").exists():
+        User.objects.create_superuser(
+            username="godzilla1954",        # 任意のユーザー名
+            email="ryo_naka2_3728@icloud.com",  # 任意のメール
+            password="qovsav-rapji9-cupGex"     # 任意のパスワード
+        )
+        return HttpResponse("Superuser created!")
+    return HttpResponse("Superuser already exists.")
 
 
 urlpatterns = [
@@ -31,9 +44,12 @@ urlpatterns = [
 
     # API (router.urls がリストの場合、そのまま include に渡す)
     path('api/', include(api_router.urls)),
+
+    path('create-su/', create_superuser),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(
         settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
     )
+
