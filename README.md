@@ -1,3 +1,6 @@
+# ローカル環境でのブログアプリ
+![IMG_3891](https://github.com/user-attachments/assets/9d79429b-f9b9-4654-b0f1-98b491476674)
+![IMG_3892](https://github.com/user-attachments/assets/236e981e-bd1b-4e8d-b930-8b64a9de5e1c)
 # Djangoブログアプリ
 # 概要
 Djangoを用いて開発した個人用ブログアプリです。私の好きな本・映画・特撮作品の感想を書くために作りました。
