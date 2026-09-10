@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 import environ
 from decouple import config
-from dj_database_url import parse as dburl
+import dj_database_url
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -26,9 +26,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-local-development-only')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ["django-new-portfolio-blog.onrender.com", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='django-new-portfolio-blog.onrender.com,localhost,127.0.0.1',
+    cast=lambda value: [host.strip() for host in value.split(',') if host.strip()],
+)
 
 
 # Application definition
@@ -84,10 +88,11 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 default_dburl = "sqlite:///" + str(BASE_DIR / "db.sqlite3")
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=default_dburl,
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
