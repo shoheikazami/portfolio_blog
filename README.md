@@ -1,51 +1,99 @@
-# ローカル環境でのブログアプリ
-![IMG_3891](https://github.com/user-attachments/assets/9d79429b-f9b9-4654-b0f1-98b491476674)
-![IMG_3892](https://github.com/user-attachments/assets/236e981e-bd1b-4e8d-b930-8b64a9de5e1c)
 # Djangoブログアプリ
-# 概要
-Djangoを用いて開発した個人用ブログアプリです。私の好きな本・映画・特撮作品の感想を書くために作りました。
-CRUD機能や検索機能など、実用的な機能を実装しています。renderでデプロイもしたのですが管理画面にログインできず、解決するには有料版を使わなければならなかったので仕方なく断念しました。
 
-# 主な機能
--　ユーザー認証機能（スーパーユーザーしか記事を投稿・編集・削除できない）
--　記事の投稿/編集/削除
--　いいね機能
--　記事検索機能
--　管理者機能
+Djangoで作成した個人用ブログアプリです。本・映画・特撮作品の感想を投稿できます。
 
-# 使用技術
-- python 3.0
-- Django
-- SQLite (開発環境)
-- HTML/bootstrap CSS
-- Git / GitHub
+## 主な機能
 
-# 工夫した点
-- REST API化によるフロントエンドとの分離(実装に苦労したが、Github Copilotの協力で可能となった)
-- セキュリティ対策(csrf)
-- 基本的な機能に対するテストコードの実装
+- ユーザー認証
+- スーパーユーザー限定の記事作成・編集・削除
+- 記事一覧、詳細表示、キーワード検索
+- IPアドレスを利用したいいね機能
+- Django REST Frameworkによる記事API
+- Django管理画面
 
-# 環境構築方法
-- '''bash
-- git clone https://github.com/shoheikazami/portfolio_blog
-- cd portfolio_blog
-- pip install -r requirements.txt
-- python manage.py migrate
-- python manage.py runserver
+APIは記事の閲覧を公開し、作成・更新・削除をスーパーユーザーだけに制限しています。テンプレート側の操作権限も同じルールです。
 
-# 参考記事
-https://zenn.dev/tmasuyama1114/articles/django-tutorial-blogapp-1
-https://zenn.dev/tmasuyama1114/articles/django-tutorial-blogapp-2
-https://zenn.dev/tmasuyama1114/articles/django-tutorial-blogapp-3
-https://zenn.dev/tmasuyama1114/articles/django-tutorial-blogapp-4
-https://zenn.dev/tmasuyama1114/articles/django-tutorial-blogapp-5
-https://zenn.dev/tmasuyama1114/articles/django-tutorial-blogapp-6
-https://zenn.dev/tmasuyama1114/articles/django-tutorial-blogapp-7
-https://qiita.com/Kmashi/items/b9136e7e422f4432a314
-https://zenn.dev/animalz/articles/ea26c757a01abb
-https://qiita.com/tatsuya11bbs/items/53620db6cd0e1e3bb12a
-https://qiita.com/hayato0311/items/c4400dd04f8da5ad9390
+## 使用技術
 
-# 感想と課題
-初めてDjangoでブログアプリを作ることができた。
-ただしAI(GitHub Copilot)に頼ってしまったことや二段階認証、Docker化ができなかったことなどがあるのでそれは今後の課題とする。
+- Python 3.13
+- Django 5.0
+- Django REST Framework
+- SQLite（ローカル開発）
+- PostgreSQL（`DATABASE_URL` が設定された本番環境）
+- Bootstrap
+- WhiteNoise
+
+## ローカル環境の構築
+
+Python 3.10以上を用意してください。
+
+```bash
+git clone https://github.com/shoheikazami/portfolio_blog.git
+cd portfolio_blog
+python -m venv .venv
+```
+
+Windows PowerShellの場合:
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+macOS/Linuxの場合:
+
+```bash
+source .venv/bin/activate
+```
+
+依存関係をインストールし、環境変数を設定します。
+
+```bash
+python -m pip install -r requirements.txt
+copy .env.example .env       # Windows
+# cp .env.example .env       # macOS/Linux
+```
+
+ローカルでは `.env` の `DATABASE_URL` を削除するとSQLiteを使用できます。`SECRET_KEY` は必ず自分用の値へ変更してください。
+
+```bash
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+ブラウザで `http://127.0.0.1:8000/blog/post_list` を開きます。管理画面は `http://127.0.0.1:8000/rider1971/` です。
+
+## API
+
+記事APIのベースURLは `/api/posts/` です。
+
+- `GET /api/posts/`: 記事一覧
+- `GET /api/posts/<id>/`: 記事詳細
+- `POST /api/posts/`: スーパーユーザーのみ
+- `PUT/PATCH /api/posts/<id>/`: スーパーユーザーのみ
+- `DELETE /api/posts/<id>/`: スーパーユーザーのみ
+
+検索は `?search=キーワード`、並び替えは `?ordering=title` または `?ordering=date` を使用します。
+
+## 本番環境
+
+Renderなどのホスティングサービスでは、次の環境変数を設定してください。
+
+- `SECRET_KEY`: 本番用のランダムな秘密鍵
+- `DATABASE_URL`: PostgreSQLの接続URL
+- `DEBUG`: `False`
+- `ALLOWED_HOSTS`: カンマ区切りの許可ホスト名
+
+`build.sh` が依存関係のインストール、静的ファイル収集、マイグレーションを実行します。本番環境では管理者を自動作成せず、必要に応じてホスティングサービスのシェルから `python manage.py createsuperuser` を実行してください。
+
+## テスト
+
+```bash
+python manage.py check
+python manage.py test
+```
+
+## 参考記事
+
+- [Djangoブログチュートリアル](https://zenn.dev/tmasuyama1114/articles/django-tutorial-blogapp-1)
+- [Django REST framework](https://www.django-rest-framework.org/)
