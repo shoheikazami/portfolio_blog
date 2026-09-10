@@ -3,6 +3,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views import generic
 from django.urls import reverse_lazy
 from django.db.models import Q
+from django.db import connection
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .forms import PostCreateForm # forms.py で作ったクラスをimport
@@ -36,9 +38,22 @@ class PostListView(generic.ListView):
         queryset = Post.objects.order_by('-date')  # 降順
         keyword = self.request.GET.get('keyword')   # 検索入力キーワード
         if keyword:
-            queryset = queryset.filter(
-                Q(title__icontains=keyword) | Q(text__icontains=keyword)
-            )  # icontains: 部分一致、大小文字区別なし
+            if connection.vendor == 'postgresql':
+                search_vector = (
+                    SearchVector('title', weight='A')
+                    + SearchVector('text', weight='B')
+                )
+                search_query = SearchQuery(keyword, search_type='websearch')
+                queryset = (
+                    queryset
+                    .annotate(search=search_vector, rank=SearchRank(search_vector, search_query))
+                    .filter(search=search_query)
+                    .order_by('-rank', '-date')
+                )
+            else:
+                queryset = queryset.filter(
+                    Q(title__icontains=keyword) | Q(text__icontains=keyword)
+                )  # SQLite開発環境では部分一致検索にフォールバック
         return queryset
 
 class PostCreateView(LoginRequiredMixin, UserPassesTestMixin,generic.CreateView): # 追加

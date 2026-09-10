@@ -53,6 +53,25 @@ class PostListTests(TestCase):
       post1 = Post.objects.create(title='title1', text='text1')
       post2 = Post.objects.create(title='title2', text='text2')
 
+
+class PostSearchTests(TestCase):
+
+    def test_search_by_title(self):
+        Post.objects.create(title='Django', text='framework')
+        Post.objects.create(title='映画', text='作品の感想')
+
+        response = self.client.get(
+            reverse('blog:post_list'),
+            {'keyword': 'Django'},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertQuerySetEqual(
+            response.context['post_list'],
+            ['<Post: Django>'],
+            transform=repr,
+        )
+
 class PostCreateTests(TestCase):
     """PostCreateビューのテストクラス."""
 
