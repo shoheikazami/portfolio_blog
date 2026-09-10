@@ -20,6 +20,7 @@ APIは記事の閲覧を公開し、作成・更新・削除をスーパーユ�
 - Django REST Framework
 - SQLite（ローカル開発）
 - PostgreSQL（`DATABASE_URL` が設定された本番環境）
+- Redis（`REDIS_URL` が設定された本番環境のキャッシュ）
 - Bootstrap
 - WhiteNoise
 
@@ -75,6 +76,12 @@ python manage.py runserver
 
 検索は `?search=キーワード`、並び替えは `?ordering=title` または `?ordering=date` を使用します。
 
+## キャッシュ設計
+
+記事一覧と検索結果は、検索条件ごとの記事IDと表示順をRedisに5分間キャッシュします。HTML全体ではなく記事IDだけをキャッシュするため、スーパーユーザー向けの編集・削除リンクが他のユーザーへ混ざりません。記事本文やいいね数は通常どおりデータベースから取得します。
+
+記事の保存・更新・削除時にはキャッシュバージョンを繰り上げます。キーに新しいバージョンを含めることで、一覧と全検索条件を一括で無効化し、古いキーはTTL経過後にRedisから削除されます。
+
 ## 本番環境
 
 Renderなどのホスティングサービスでは、次の環境変数を設定してください。
@@ -83,6 +90,7 @@ Renderなどのホスティングサービスでは、次の環境変数を設�
 - `DATABASE_URL`: PostgreSQLの接続URL
 - `DEBUG`: `False`
 - `ALLOWED_HOSTS`: カンマ区切りの許可ホスト名
+- `REDIS_URL`: Redisの接続URL
 
 `build.sh` が依存関係のインストール、静的ファイル収集、マイグレーションを実行します。本番環境では管理者を自動作成せず、必要に応じてホスティングサービスのシェルから `python manage.py createsuperuser` を実行してください。
 

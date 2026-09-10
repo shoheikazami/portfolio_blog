@@ -9,3 +9,4 @@ whitenoise
 djangorestframework
 django_social_share
 pillow
+redis

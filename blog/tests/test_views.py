@@ -1,5 +1,6 @@
 from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
+from django.core.cache import cache
 
 from ..models import Post
 from ..views import get_client_ip
@@ -56,6 +57,9 @@ class PostListTests(TestCase):
 
 class PostSearchTests(TestCase):
 
+    def setUp(self):
+        cache.clear()
+
     def test_search_by_title(self):
         Post.objects.create(title='Django', text='framework')
         Post.objects.create(title='映画', text='作品の感想')
@@ -71,6 +75,15 @@ class PostSearchTests(TestCase):
             ['<Post: Django>'],
             transform=repr,
         )
+
+    def test_post_changes_invalidate_cached_results(self):
+        Post.objects.create(title='first', text='text')
+        self.client.get(reverse('blog:post_list'))
+
+        Post.objects.create(title='second', text='text')
+        response = self.client.get(reverse('blog:post_list'))
+
+        self.assertContains(response, 'second')
 
 class PostCreateTests(TestCase):
     """PostCreateビューのテストクラス."""

@@ -1,14 +1,18 @@
+import hashlib
+
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views import generic
 from django.urls import reverse_lazy
-from django.db.models import Q
+from django.db.models import Case, IntegerField, Q, When
 from django.db import connection
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+from django.core.cache import cache
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .forms import PostCreateForm # forms.py で作ったクラスをimport
 from .models import Post, Like
+from .cache import POST_LIST_CACHE_TIMEOUT, get_post_list_cache_version
 
 
 def get_client_ip(request):
@@ -35,8 +39,18 @@ class PostListView(generic.ListView):
     paginate_by = 5
 
     def get_queryset(self):
+        keyword = self.request.GET.get('keyword', '').strip()
+        cache_key = self.get_post_list_cache_key(keyword)
+        cached_ids = cache.get(cache_key)
+        if cached_ids is not None:
+            if not cached_ids:
+                return Post.objects.none()
+            ordering = [When(pk=post_id, then=position) for position, post_id in enumerate(cached_ids)]
+            return Post.objects.filter(pk__in=cached_ids).order_by(
+                Case(*ordering, output_field=IntegerField())
+            )
+
         queryset = Post.objects.order_by('-date')  # 降順
-        keyword = self.request.GET.get('keyword')   # 検索入力キーワード
         if keyword:
             if connection.vendor == 'postgresql':
                 search_vector = (
@@ -54,7 +68,15 @@ class PostListView(generic.ListView):
                 queryset = queryset.filter(
                     Q(title__icontains=keyword) | Q(text__icontains=keyword)
                 )  # SQLite開発環境では部分一致検索にフォールバック
+
+        post_ids = list(queryset.values_list('pk', flat=True))
+        cache.set(cache_key, post_ids, timeout=POST_LIST_CACHE_TIMEOUT)
         return queryset
+
+    def get_post_list_cache_key(self, keyword):
+        keyword_hash = hashlib.sha256(keyword.casefold().encode('utf-8')).hexdigest()
+        version = get_post_list_cache_version()
+        return f'blog:post-list:{version}:{keyword_hash}'
 
 class PostCreateView(LoginRequiredMixin, UserPassesTestMixin,generic.CreateView): # 追加
     model = Post # 作成したい model を指定

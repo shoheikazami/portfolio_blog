@@ -95,6 +95,19 @@ DATABASES = {
     )
 }
 
+REDIS_URL = config('REDIS_URL', default='')
+CACHES = {
+    'default': {
+        'BACKEND': (
+            'django.core.cache.backends.redis.RedisCache'
+            if REDIS_URL
+            else 'django.core.cache.backends.locmem.LocMemCache'
+        ),
+        'LOCATION': REDIS_URL or 'blog-local-cache',
+        'TIMEOUT': 300,
+    }
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
