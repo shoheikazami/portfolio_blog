@@ -1,7 +1,20 @@
-from django.test import TestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
 
 from ..models import Post
+from ..views import get_client_ip
+
+
+class ClientIPTests(SimpleTestCase):
+
+    def test_ignores_forwarded_for_header(self):
+        request = RequestFactory().get(
+            '/',
+            HTTP_X_FORWARDED_FOR='203.0.113.10',
+            REMOTE_ADDR='192.0.2.10',
+        )
+
+        self.assertEqual(get_client_ip(request), '192.0.2.10')
 
 class PostListTests(TestCase):
 
