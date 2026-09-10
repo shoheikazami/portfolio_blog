@@ -21,6 +21,7 @@ APIは記事の閲覧を公開し、作成・更新・削除をスーパーユ�
 - SQLite（ローカル開発）
 - PostgreSQL（`DATABASE_URL` が設定された本番環境）
 - Redis（`REDIS_URL` が設定された本番環境のキャッシュ）
+- Docker Compose（Django、PostgreSQL、Redisのローカル統合環境）
 - Bootstrap
 - WhiteNoise
 
@@ -63,6 +64,31 @@ python manage.py runserver
 ```
 
 ブラウザで `http://127.0.0.1:8000/blog/post_list` を開きます。管理画面は `http://127.0.0.1:8000/rider1971/` です。
+
+## Docker Compose
+
+Docker Desktopを起動した状態で、プロジェクトのルートから実行します。
+
+```bash
+docker compose up --build
+```
+
+この構成ではDjango、PostgreSQL、Redisを起動します。Djangoコンテナは起動時にマイグレーションと静的ファイル収集を実行し、PostgreSQLのhealthcheckが成功してから起動します。ブラウザでは `http://127.0.0.1:8000/blog/post_list` を開いてください。
+
+別のターミナルから管理者を作成できます。
+
+```bash
+docker compose exec web python manage.py createsuperuser
+```
+
+停止する場合は次を実行します。データも削除する場合は `-v` を付けます。
+
+```bash
+docker compose down
+docker compose down -v
+```
+
+Composeでは、`DATABASE_URL` がCompose内のPostgreSQLを指し、`REDIS_URL` がCompose内のRedisを指します。PostgreSQLとRedisのデータは名前付きボリュームに保存されるため、コンテナを再作成しても保持されます。
 
 ## API
 
