@@ -156,5 +156,16 @@ LOGIN_URL = 'blog:login'
 LOGIN_REDIRECT_URL = 'blog:post_list'
 LOGOUT_REDIRECT_URL = 'blog:post_list'
 
-
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "loggers": {
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+    },
+}
 
